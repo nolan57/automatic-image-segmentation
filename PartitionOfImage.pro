@@ -6,19 +6,16 @@ CONFIG -= qt
 SOURCES += \
         main.cpp \
         pieceofimage.cpp \
+        #scope.cpp \
         tools.cpp
 
+INCLUDEPATH += /opt/homebrew/Cellar/opencv/4.9.0_4/include/opencv4/
+INCLUDEPATH += /opt/homebrew/Cellar/opencv/4.9.0_4/include/opencv4/opencv2/
+INCLUDEPATH += /opt/homebrew/Cellar/opencv/4.9.0_4/include/
+
+LIBS += /opt/homebrew/Cellar/opencv/4.9.0_4/lib/libopencv_*
 
 HEADERS += \
     pieceofimage.h \
+    #scope.h \
     tools.h
-
-INCLUDEPATH += E:\openCV\openCV\4.9.0\build\include
-
-LIBS += E:\openCV\4.9.0\bin\libopencv_core490.dll
-LIBS += E:\openCV\4.9.0\bin\libopencv_highgui490.dll
-LIBS += E:\openCV\4.9.0\bin\libopencv_imgcodecs490.dll
-LIBS += E:\openCV\4.9.0\bin\libopencv_imgproc490.dll
-LIBS += E:\openCV\4.9.0\bin\libopencv_features2d490.dll
-LIBS += E:\openCV\4.9.0\bin\libopencv_calib3d490.dll
-

@@ -5,7 +5,8 @@ using namespace std;
 
 int main() {
     // // 读取原始图片
-    cv::Mat originalImage = cv::imread("E:\\QtProjs\\PartitionOfImage\\1.jpg",cv::IMREAD_UNCHANGED);
+    //cv::Mat originalImage = cv::imread("E:\\QtProjs\\PartitionOfImage\\1.jpg",cv::IMREAD_UNCHANGED);
+    cv::Mat originalImage = cv::imread("/Users/lpcw/QtProjs/automatic-image-segmentation/1.jpg",cv::IMREAD_UNCHANGED);
 
     // // 定义划分份数N和M
     // int N = 3; // 宽度划分份数
