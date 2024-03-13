@@ -30,6 +30,7 @@ public:
     bool inScope(cv::Point point,CircleScope scope);
     int inScopes(cv::Point point,std::vector<CircleScope> circleScopes);
     void toShapeImage(PieceOfImage &image);
+    cv::Mat toAlphaImage(const cv::Mat &inputImage);
 };
 
 #endif // TOOLS_H

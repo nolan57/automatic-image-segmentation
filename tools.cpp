@@ -422,8 +422,12 @@ bool Tools::inScope(cv::Point point,CircleScope scope){
 }
 
 void Tools::toShapeImage(PieceOfImage &image){
-    cv::Mat ShapedImage = image.image;
+
+    //cv::Mat inputImage = image.image.clone();
+    cv::Mat ShapedImage = image.image.clone();
     KeyPoints keyPoints = image.getKeyPoints();
+
+    //ßcv::cvtColor(inputImage,ShapedImage,cv::COLOR_BGR2BGRA);
 
     for(int col =0;col<image.image.cols;col++){
         for(int row = 0;row<image.image.rows;row++){
@@ -438,7 +442,8 @@ void Tools::toShapeImage(PieceOfImage &image){
                         if(circleSope.code==-1){
                             //若是在空圆中，则设为透明
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(255, 255, 0), 1);
+                            //cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                            ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                             //seted = true;
                             //退出遍历圆
                             break;
@@ -456,7 +461,8 @@ void Tools::toShapeImage(PieceOfImage &image){
                         if(circleSope.code !=1){
                             //不在实圆内，就设为透明
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(255, 0, 255), 1);
+                            //cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                            ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                             seted = true;
                             break;
                         }
@@ -464,12 +470,13 @@ void Tools::toShapeImage(PieceOfImage &image){
                 }
                 if(!seted){
                     //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                    cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 255, 255), 1);
+                    //cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                    ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                 }
             }
         }
     }
-    image.shapedImage = ShapedImage;
+    image.shapedImage = ShapedImage.clone();
     std::string filename = "shapedImage_[" +
                            std::to_string(image.location.col) + "," +
                            std::to_string(image.location.row) + "]" + "_" + ".jpg";
@@ -479,6 +486,22 @@ void Tools::toShapeImage(PieceOfImage &image){
     cv::imshow("Image with shapes", ShapedImage);
     cv::waitKey(0);
     cv::destroyAllWindows();
+}
+
+cv::Mat Tools::toAlphaImage(const cv::Mat &inputImage){
+    // 创建一个新的Mat对象，包含4个通道（3个颜色通道 + 1个alpha通道）
+    cv::Mat image_with_alpha(inputImage.rows, inputImage.cols, CV_8UC4);
+
+    // 将JPEG图像的颜色通道复制到新的Mat对象中
+    cv::cvtColor(inputImage, image_with_alpha, cv::COLOR_BGR2BGRA);
+
+    // 将alpha通道设置为255（不透明）
+    for (int i = 0; i < image_with_alpha.rows; i++) {
+        for (int j = 0; j < image_with_alpha.cols; j++) {
+            image_with_alpha.at<cv::Vec4b>(i, j)[3] = 255;
+        }
+    }
+    return image_with_alpha;
 }
 
 void Tools::toTestSideCode(const int rows,const int cols){
