@@ -4,12 +4,14 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        createalpha.cpp \
         main.cpp \
         pieceofimage.cpp \
         tools.cpp
 
 
 HEADERS += \
+    createalpha.h \
     pieceofimage.h \
     tools.h
 

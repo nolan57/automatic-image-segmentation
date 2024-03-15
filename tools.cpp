@@ -1,5 +1,6 @@
 #include "tools.h"
 #include <cstdlib>
+#include "createalpha.h"
 
 Tools::Tools() {}
 int Tools::randCode(){
@@ -113,34 +114,44 @@ std::string Tools::setType(const Location loc,const int rows,const int cols){
 
 KeyPoints Tools::setCircleScopes(KeyPoints keyPoints,int lta,std::map<std::string,int> sidesCode){
 
-    keyPoints.circleScopes[0].code = sidesCode.at("上边");
-    keyPoints.circleScopes[0].center = (keyPoints.internalScope.ltp+keyPoints.internalScope.rtp)/2;
-    //keyPoints.circleScopes[0].r = keyPoints.internalScope.getHeight()/4;
-    keyPoints.circleScopes[0].r = lta;
-    std::cout << "圆半径:" << keyPoints.circleScopes[0].r<<"\n";
+    CircleScope circleScope = CircleScope();
 
-    keyPoints.circleScopes[1].code = sidesCode.at("右边");
-    keyPoints.circleScopes[1].center = (keyPoints.internalScope.rtp+keyPoints.internalScope.rbp)/2;
-    //keyPoints.circleScopes[1].r = keyPoints.internalScope.getWidth()/4;
-    keyPoints.circleScopes[1].r = lta;
-    std::cout << "圆半径:" << keyPoints.circleScopes[1].r<<"\n";
+    circleScope.code = sidesCode.at("上边");
+    circleScope.center = (keyPoints.internalScope.ltp+keyPoints.internalScope.rtp)/2;
+    circleScope.r = lta;
+    keyPoints.circleScopes.push_back(circleScope);
 
-    keyPoints.circleScopes[2].code = sidesCode.at("下边");
-    keyPoints.circleScopes[2].center = (keyPoints.internalScope.lbp+keyPoints.internalScope.rbp)/2;
-    //keyPoints.circleScopes[2].r = keyPoints.internalScope.getHeight()/4;
-    keyPoints.circleScopes[2].r = lta;
-    std::cout << "圆半径:" << keyPoints.circleScopes[2].r<<"\n";
+    circleScope.code = sidesCode.at("右边");
+    circleScope.center = (keyPoints.internalScope.rtp+keyPoints.internalScope.rbp)/2;
+    circleScope.r = lta;
+    keyPoints.circleScopes.push_back(circleScope);
 
-    keyPoints.circleScopes[3].code = sidesCode.at("左边");
-    keyPoints.circleScopes[3].center = (keyPoints.internalScope.ltp+keyPoints.internalScope.lbp)/2;
-    //keyPoints.circleScopes[3].r = keyPoints.internalScope.getWidth()/4;
-    keyPoints.circleScopes[3].r = lta;
-    std::cout << "圆半径:" << keyPoints.circleScopes[3].r<<"\n";
+    circleScope.code = sidesCode.at("下边");
+    circleScope.center = (keyPoints.internalScope.lbp+keyPoints.internalScope.rbp)/2;
+    circleScope.r = lta;
+    keyPoints.circleScopes.push_back(circleScope);
+
+    circleScope.code = sidesCode.at("左边");
+    circleScope.center = (keyPoints.internalScope.ltp+keyPoints.internalScope.lbp)/2;
+    circleScope.r = lta;
+    keyPoints.circleScopes.push_back(circleScope);
+
+
+
+    // keyPoints.circleScopes[0].code = sidesCode.at("上边");
+    // keyPoints.circleScopes[0].center = (keyPoints.internalScope.ltp+keyPoints.internalScope.rtp)/2;
+    // //keyPoints.circleScopes[0].r = keyPoints.internalScope.getHeight()/4;
+    // keyPoints.circleScopes[0].r = lta;
+    std::cout << "上边圆圆心:" << keyPoints.circleScopes[0].center<<"\n";
+    std::cout << "右边圆圆心:" << keyPoints.circleScopes[1].center<<"\n";
+    std::cout << "下边圆圆心:" << keyPoints.circleScopes[2].center<<"\n";
+    std::cout << "左边圆圆心:" << keyPoints.circleScopes[3].center<<"\n";
 
     std::cout << "图片大小:" << keyPoints.externalScope.width <<"," <<keyPoints.externalScope.height<<"\n";
     std::cout << "外矩形:" << keyPoints.externalScope.ltp<<","<<keyPoints.externalScope.rbp<<"\n";
+    std::cout<<"外矩形大小" <<keyPoints.externalScope.width<<","<<keyPoints.externalScope.height<<"\n";
     std::cout << "内矩形:" << keyPoints.internalScope.ltp<<","<<keyPoints.internalScope.rbp<<"\n";
-    std::cout << "内矩形宽高:" << keyPoints.internalScope.width<<","<<keyPoints.internalScope.height<<"\n";
+    std::cout << "内矩形大小:" << keyPoints.internalScope.width<<","<<keyPoints.internalScope.height<<"\n";
 
     return keyPoints;
 }
@@ -611,16 +622,17 @@ std::vector<PieceOfImage> Tools::toPartition(const cv::Mat originalImage,const i
             PieceOfImage image=images[i*cols+j];
             std::string type = image.type;
             std::map<std::string,int> sidesCode = image.sidesCode;
-            images[i*cols+j].r = sizeOfPartition.lta;
+
             sizeOfPartition = setSizeOfPartition(type,sidesCode, j * smallWidth,i * smallHeight, smallWidth, smallHeight,originalImage.cols,originalImage.rows);
             images[i*cols+j].setKeyPoints(sizeOfPartition.keyPoints);
+            images[i*cols+j].r = sizeOfPartition.lta;
 
             cv::Rect roi(sizeOfPartition.col, sizeOfPartition.row, sizeOfPartition.width, sizeOfPartition.height);
             cv::Mat shapedImage = originalImage(roi).clone();
             images[i*cols+j].shapedImage = shapedImage;
 
             // 保存小图片
-            std::string filename = "small_image_" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+            std::string filename = "small_image_" + std::to_string(i) + "_" + std::to_string(j) + ".png";
             cv::imwrite(filename, shapedImage);
         }
     }
@@ -673,8 +685,7 @@ void Tools::toShapeImage(PieceOfImage &image){
                         //判断是不是在空圆内
                         if(circleSope.code==-1){
                             //若是在空圆中，则设为透明
-                            //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 1, cv::Scalar(255, 255, 255,0), -1);
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                             //seted = true;
                             //退出遍历圆
@@ -684,55 +695,43 @@ void Tools::toShapeImage(PieceOfImage &image){
                 }
             }else{
                 //如果不在内矩形内
-                bool seted = false;
+                //bool seted = false;
+                bool IsInACircle = false;
                 //则遍历所有圆
                 for(CircleScope circleSope:keyPoints.circleScopes){
                     //判断是不是在某个圆内
                     if(inScope(point,circleSope)){
+                        IsInACircle = true;
                         //判断是否不在实圆内
-                        if(circleSope.code !=1){
+                        if(circleSope.code == 0 || circleSope.code == -1){
                             //不在实圆内，就设为透明
+                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 1, cv::Scalar(255, 255, 255,0), -1);
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
-                            //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            seted = true;
+                            //seted = true;
                             break;
                         }
                     }
                 }
-                if(!seted){
-                    //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                    cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                if(!IsInACircle){
+                    cv::circle(ShapedImage, cv::Point(point.x, point.y), 1, cv::Scalar(255, 255, 255,0), -1);
                     //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                 }
             }
         }
     }
     image.shapedImage = ShapedImage.clone();
-    std::string filename = "shapedImage_[" +
-                           std::to_string(image.location.col) + "," +
-                           std::to_string(image.location.row) + "]" + "_" + ".jpg";
-    cv::imwrite(filename, ShapedImage);
-
-    // 显示绘制后的图片
-    cv::imshow("Image with shapes", ShapedImage);
-    cv::waitKey(0);
-    cv::destroyAllWindows();
 }
 
-cv::Mat Tools::toAlphaImage(const cv::Mat inputImage){
-    // 创建一个新的Mat对象，包含4个通道（3个颜色通道 + 1个alpha通道）
-    cv::Mat image_with_alpha(inputImage.rows, inputImage.cols, CV_8UC4);
+cv::Mat Tools::addAlphaToImage(cv::Mat &inputImage){
 
-    // 将JPEG图像的颜色通道复制到新的Mat对象中
-    cv::cvtColor(inputImage, image_with_alpha, cv::COLOR_BGR2BGRA);
+    cv::Mat image_with_alpha = inputImage.clone();
+    CreateAlpha createAlpha = CreateAlpha();
 
-    // 将alpha通道设置为255（不透明）
-    for (int i = 0; i < image_with_alpha.rows; i++) {
-        for (int j = 0; j < image_with_alpha.cols; j++) {
-            image_with_alpha.at<cv::Vec4b>(i, j)[3] = 255;
-        }
+    cv::Mat alpha = createAlpha.createAlphaChannel(inputImage);
+    if(createAlpha.addAlpha(inputImage,image_with_alpha,alpha)==-1){
+        std::cout << "already has 4 channels";
     }
+
     return image_with_alpha;
 }
 
