@@ -1,8 +1,6 @@
 #include "tools.h"
 #include <cstdlib>
 
-SizeOfPartition::SizeOfPartition(){}
-
 Tools::Tools() {}
 int Tools::randCode(){
     srand(time(0));
@@ -113,12 +111,51 @@ std::string Tools::setType(const Location loc,const int rows,const int cols){
     return "其他";
 }
 
+KeyPoints Tools::setCircleScopes(KeyPoints keyPoints,int lta,std::map<std::string,int> sidesCode){
+
+    keyPoints.circleScopes[0].code = sidesCode.at("上边");
+    keyPoints.circleScopes[0].center = (keyPoints.internalScope.ltp+keyPoints.internalScope.rtp)/2;
+    //keyPoints.circleScopes[0].r = keyPoints.internalScope.getHeight()/4;
+    keyPoints.circleScopes[0].r = lta;
+    std::cout << "圆半径:" << keyPoints.circleScopes[0].r<<"\n";
+
+    keyPoints.circleScopes[1].code = sidesCode.at("右边");
+    keyPoints.circleScopes[1].center = (keyPoints.internalScope.rtp+keyPoints.internalScope.rbp)/2;
+    //keyPoints.circleScopes[1].r = keyPoints.internalScope.getWidth()/4;
+    keyPoints.circleScopes[1].r = lta;
+    std::cout << "圆半径:" << keyPoints.circleScopes[1].r<<"\n";
+
+    keyPoints.circleScopes[2].code = sidesCode.at("下边");
+    keyPoints.circleScopes[2].center = (keyPoints.internalScope.lbp+keyPoints.internalScope.rbp)/2;
+    //keyPoints.circleScopes[2].r = keyPoints.internalScope.getHeight()/4;
+    keyPoints.circleScopes[2].r = lta;
+    std::cout << "圆半径:" << keyPoints.circleScopes[2].r<<"\n";
+
+    keyPoints.circleScopes[3].code = sidesCode.at("左边");
+    keyPoints.circleScopes[3].center = (keyPoints.internalScope.ltp+keyPoints.internalScope.lbp)/2;
+    //keyPoints.circleScopes[3].r = keyPoints.internalScope.getWidth()/4;
+    keyPoints.circleScopes[3].r = lta;
+    std::cout << "圆半径:" << keyPoints.circleScopes[3].r<<"\n";
+
+    std::cout << "图片大小:" << keyPoints.externalScope.width <<"," <<keyPoints.externalScope.height<<"\n";
+    std::cout << "外矩形:" << keyPoints.externalScope.ltp<<","<<keyPoints.externalScope.rbp<<"\n";
+    std::cout << "内矩形:" << keyPoints.internalScope.ltp<<","<<keyPoints.internalScope.rbp<<"\n";
+    std::cout << "内矩形宽高:" << keyPoints.internalScope.width<<","<<keyPoints.internalScope.height<<"\n";
+
+    return keyPoints;
+}
+
 SizeOfPartition Tools::setSizeOfPartition(const std::string type,
                                           const std::map<std::string,int> sidesCode,
                                           const int col,const int row,
                                           const int smallWidth,const int smallHeight,
                                           const int cols,const int rows){
     SizeOfPartition sizeOfpartition=SizeOfPartition();
+    KeyPoints keyPoints = KeyPoints();
+    RectangleScope externalScope = RectangleScope();
+    RectangleScope internalScop = RectangleScope();
+    //CircleScope circleScope = CircleScope();
+
     sizeOfpartition.col = col;
     sizeOfpartition.row = row;
     sizeOfpartition.width = smallWidth;
@@ -133,7 +170,15 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     //std::cin.get();
 
 
+    internalScop.ltp = cv::Point(0,0);
+    internalScop.rtp = cv::Point(0,0) + cv::Point(smallWidth,0);
+    internalScop.rbp = cv::Point(0,0)+cv::Point(smallWidth,smallHeight);
+    internalScop.lbp = cv::Point(0,0) + cv::Point(0,smallHeight);
+    internalScop.width = smallWidth;
+    internalScop.height = smallHeight;
+
     if(type == "左上角"){
+
         if(sidesCode.at("右边")==1){
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
@@ -146,6 +191,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<1;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -155,8 +212,15 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     }
 
     if(type == "右上角"){
+
         if(sidesCode.at("左边")==1){
             sizeOfpartition.col = col-lta;//smallWidth/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+            internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+            internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+            internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
         if(sidesCode.at("下边")==1){
@@ -168,6 +232,19 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
+
         std::cout<<3;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -179,10 +256,22 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "右下角"){
         if(sidesCode.at("左边")==1){
             sizeOfpartition.col = col-lta;//smallWidth/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+            internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+            internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+            internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
         if(sidesCode.at("上边")==1){
             sizeOfpartition.row = row-lta;//smallHeight/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+            internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+            internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+            internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
             sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
         }
         if(sizeOfpartition.col+sizeOfpartition.width>cols){
@@ -191,6 +280,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<5;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -202,6 +303,12 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "左下角"){
         if(sidesCode.at("上边")==1){
             sizeOfpartition.row = row-lta;//smallHeight/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+            internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+            internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+            internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
             sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
         }
         if(sidesCode.at("右边")==1){
@@ -213,6 +320,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<7;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -224,6 +343,12 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "左边"){
         if(sidesCode.at("上边")==1){
             sizeOfpartition.row = row-lta;//smallHeight/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+            internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+            internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+            internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
             sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
         }
         if(sidesCode.at("下边")==1){
@@ -238,6 +363,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<8;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -248,6 +385,12 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "上边"){
         if(sidesCode.at("左边")==1){
             sizeOfpartition.col = col-lta;//smallWidth/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+            internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+            internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+            internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
         if(sidesCode.at("右边")==1){
@@ -262,6 +405,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<2;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -273,10 +428,22 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "右边"){
         if(sidesCode.at("上边")==1){
             sizeOfpartition.row = row-lta;//smallHeight/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+            internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+            internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+            internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
             sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
         }
         if(sidesCode.at("左边")==1){
             sizeOfpartition.col = col-lta;//smallWidth/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+            internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+            internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+            internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
         if(sidesCode.at("下边")==1){
@@ -288,6 +455,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<3;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -298,6 +477,12 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(type == "下边"){
         if(sidesCode.at("左边")==1){
             sizeOfpartition.col = col-lta;//smallWidth/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+            internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+            internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+            internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
             sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
         }
         if(sidesCode.at("右边")==1){
@@ -305,6 +490,12 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         }
         if(sidesCode.at("上边")==1){
             sizeOfpartition.row = row-lta;//smallHeight/4;
+
+            internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+            internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+            internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+            internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
             sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
         }
         if(sizeOfpartition.col+sizeOfpartition.width>cols){
@@ -313,6 +504,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
         if(sizeOfpartition.row+sizeOfpartition.height>rows){
             sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
         }
+
+        externalScope.ltp = cv::Point(0,0);
+        externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+        externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+        externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+        externalScope.width = sizeOfpartition.width;
+        externalScope.height = sizeOfpartition.height;
+
+        keyPoints.externalScope = externalScope;
+        keyPoints.internalScope = internalScop;
+        sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
         std::cout<<6;
         std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
         std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -322,10 +525,22 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     }
     if(sidesCode.at("左边")==1){
         sizeOfpartition.col = col-lta;//smallWidth/4;
+
+        internalScop.ltp = internalScop.ltp+cv::Point(lta,0);
+        internalScop.rtp = internalScop.rtp+cv::Point(lta,0);
+        internalScop.rbp = internalScop.rbp+cv::Point(lta,0);
+        internalScop.lbp = internalScop.lbp+cv::Point(lta,0);
+
         sizeOfpartition.width = smallWidth+lta;//smallWidth/4;
     }
     if(sidesCode.at("上边")==1){
         sizeOfpartition.row = row-lta;//smallHeight/4;
+
+        internalScop.ltp = internalScop.ltp+cv::Point(0,lta);
+        internalScop.rtp = internalScop.rtp+cv::Point(0,lta);
+        internalScop.rbp = internalScop.rbp+cv::Point(0,lta);
+        internalScop.lbp = internalScop.lbp+cv::Point(0,lta);
+
         sizeOfpartition.height = smallHeight+lta;//smallHeight/4;
     }
     if(sidesCode.at("右边")==1){
@@ -340,6 +555,18 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
     if(sizeOfpartition.row+sizeOfpartition.height>rows){
         sizeOfpartition.height = sizeOfpartition.height-(sizeOfpartition.row+sizeOfpartition.height-rows);
     }
+
+    externalScope.ltp = cv::Point(0,0);
+    externalScope.rtp = cv::Point(0,0) + cv::Point(sizeOfpartition.width ,0);
+    externalScope.rbp = cv::Point(0,0)+cv::Point(sizeOfpartition.width ,sizeOfpartition.height);
+    externalScope.lbp = cv::Point(0,0) + cv::Point(0,sizeOfpartition.height);
+    externalScope.width = sizeOfpartition.width;
+    externalScope.height = sizeOfpartition.height;
+
+    keyPoints.externalScope = externalScope;
+    keyPoints.internalScope = internalScop;
+    sizeOfpartition.keyPoints = setCircleScopes(keyPoints,lta,sidesCode);
+
     std::cout<<9;
     std::cout<<"("<<sizeOfpartition.col<<","<<sizeOfpartition.row<<")";
     std::cout<<"("<<sidesCode.at("左边")<<sidesCode.at("上边")<<sidesCode.at("右边")<<sidesCode.at("下边")<<")";
@@ -349,7 +576,7 @@ SizeOfPartition Tools::setSizeOfPartition(const std::string type,
 }
 
 
-std::vector<PieceOfImage> Tools::toPartition(const cv::Mat &originalImage,const int rows,const int cols){
+std::vector<PieceOfImage> Tools::toPartition(const cv::Mat originalImage,const int rows,const int cols){
 
     std::vector<PieceOfImage> images=std::vector<PieceOfImage>();
     SizeOfPartition sizeOfPartition=SizeOfPartition();
@@ -369,9 +596,12 @@ std::vector<PieceOfImage> Tools::toPartition(const cv::Mat &originalImage,const 
 
             image.location.row = i;
             image.location.col = j;
-            image.size.width = smallWidth;
-            image.size.height = smallHeight;
+            image.sizeOfSmallImage.width = smallWidth;
+            image.sizeOfSmallImage.height = smallHeight;
             image.type = setType(image.location,rows,cols);
+            cv::Rect roi(j * smallWidth,i * smallHeight, smallWidth, smallHeight);
+            cv::Mat smallImage = originalImage(roi).clone();
+            image.smallImage = smallImage;
             images.push_back(image);
         }
     }
@@ -381,15 +611,17 @@ std::vector<PieceOfImage> Tools::toPartition(const cv::Mat &originalImage,const 
             PieceOfImage image=images[i*cols+j];
             std::string type = image.type;
             std::map<std::string,int> sidesCode = image.sidesCode;
+            images[i*cols+j].r = sizeOfPartition.lta;
             sizeOfPartition = setSizeOfPartition(type,sidesCode, j * smallWidth,i * smallHeight, smallWidth, smallHeight,originalImage.cols,originalImage.rows);
+            images[i*cols+j].setKeyPoints(sizeOfPartition.keyPoints);
 
             cv::Rect roi(sizeOfPartition.col, sizeOfPartition.row, sizeOfPartition.width, sizeOfPartition.height);
-            cv::Mat smallImage = originalImage(roi).clone();
-            images[i*cols+j].image = smallImage;
-            images[i*cols+j].r = sizeOfPartition.lta;
+            cv::Mat shapedImage = originalImage(roi).clone();
+            images[i*cols+j].shapedImage = shapedImage;
+
             // 保存小图片
             std::string filename = "small_image_" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
-            cv::imwrite(filename, smallImage);
+            cv::imwrite(filename, shapedImage);
         }
     }
     return images;
@@ -422,11 +654,15 @@ bool Tools::inScope(cv::Point point,CircleScope scope){
 }
 
 void Tools::toShapeImage(PieceOfImage &image){
-    cv::Mat ShapedImage = image.image;
+
+    //cv::Mat inputImage = image.image.clone();
+    cv::Mat ShapedImage = image.shapedImage.clone();
     KeyPoints keyPoints = image.getKeyPoints();
 
-    for(int col =0;col<image.image.cols;col++){
-        for(int row = 0;row<image.image.rows;row++){
+    //ßcv::cvtColor(inputImage,ShapedImage,cv::COLOR_BGR2BGRA);
+
+    for(int col =0;col<image.shapedImage.cols;col++){
+        for(int row = 0;row<image.shapedImage.rows;row++){
             cv::Point point=cv::Point(col,row);
             //bool seted = false;
             //判断点是不是在内矩形中
@@ -438,7 +674,8 @@ void Tools::toShapeImage(PieceOfImage &image){
                         if(circleSope.code==-1){
                             //若是在空圆中，则设为透明
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(255, 255, 0), 1);
+                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                            //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                             //seted = true;
                             //退出遍历圆
                             break;
@@ -456,7 +693,8 @@ void Tools::toShapeImage(PieceOfImage &image){
                         if(circleSope.code !=1){
                             //不在实圆内，就设为透明
                             //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(255, 0, 255), 1);
+                            cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                            //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                             seted = true;
                             break;
                         }
@@ -464,12 +702,13 @@ void Tools::toShapeImage(PieceOfImage &image){
                 }
                 if(!seted){
                     //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
-                    cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 255, 255), 1);
+                    cv::circle(ShapedImage, cv::Point(point.x, point.y), 2, cv::Scalar(0, 0, 0,0), 1);
+                    //ShapedImage.at<cv::Vec4b>(point.x,point.y)[3]=0;
                 }
             }
         }
     }
-    image.shapedImage = ShapedImage;
+    image.shapedImage = ShapedImage.clone();
     std::string filename = "shapedImage_[" +
                            std::to_string(image.location.col) + "," +
                            std::to_string(image.location.row) + "]" + "_" + ".jpg";
@@ -479,6 +718,22 @@ void Tools::toShapeImage(PieceOfImage &image){
     cv::imshow("Image with shapes", ShapedImage);
     cv::waitKey(0);
     cv::destroyAllWindows();
+}
+
+cv::Mat Tools::toAlphaImage(const cv::Mat inputImage){
+    // 创建一个新的Mat对象，包含4个通道（3个颜色通道 + 1个alpha通道）
+    cv::Mat image_with_alpha(inputImage.rows, inputImage.cols, CV_8UC4);
+
+    // 将JPEG图像的颜色通道复制到新的Mat对象中
+    cv::cvtColor(inputImage, image_with_alpha, cv::COLOR_BGR2BGRA);
+
+    // 将alpha通道设置为255（不透明）
+    for (int i = 0; i < image_with_alpha.rows; i++) {
+        for (int j = 0; j < image_with_alpha.cols; j++) {
+            image_with_alpha.at<cv::Vec4b>(i, j)[3] = 255;
+        }
+    }
+    return image_with_alpha;
 }
 
 void Tools::toTestSideCode(const int rows,const int cols){

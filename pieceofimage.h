@@ -5,68 +5,87 @@
 
 class RectangleScope{
 public:
-    RectangleScope(){}
+    RectangleScope(){
+        ltp = cv::Point(0,0);
+        rtp = cv::Point(0,0);
+        rbp = cv::Point(0,0);
+        lbp = cv::Point(0,0);
+        width = 0;
+        height = 0;
+    };
     cv::Point ltp;
     cv::Point rtp;
     cv::Point rbp;
     cv::Point lbp;
-    int getWidth(){return rtp.x-ltp.x;}
-    int getHeight(){return rbp.y-ltp.y;}
+    //int getWidth(){return rtp.x-ltp.x;}
+    //int getHeight(){return rbp.y-ltp.y;}
+    int width;
+    int height;
 };
 
 class CircleScope{
 public:
-    CircleScope(){}
+    CircleScope(){
+        center = cv::Point(0,0);
+        r = 0;
+        code = 0;
+    };
     cv::Point center;
     int r;
     int code;
 };
 
 struct KeyPoints{
-    RectangleScope externalScope;
-    RectangleScope internalScope;
-    std::vector<CircleScope> circleScopes;
+    RectangleScope externalScope=RectangleScope();
+    RectangleScope internalScope=RectangleScope();
+    std::vector<CircleScope> circleScopes=std::vector<CircleScope>();
 };
 
 class Location
 {
 public:
-    Location(){};
+    Location(){
+        row = 0;
+        col = 0;
+    }
     int row;
     int col;
-
-    Location(long irow,long icol):row(irow),col(icol){}
 };
+
+
 class SizeOfImage
 {
 public:
-    SizeOfImage(){};
+    SizeOfImage():width(0),height(0){}
     int width;
     int height;
-    SizeOfImage(long iwidth,long iheight):width(iwidth),height(iheight){}
 };
 
 class PieceOfImage
 {
 public:
-    PieceOfImage(){};
-    Location location={0,0};
+    PieceOfImage(){sizeOfSmallImage = SizeOfImage();sizeOfShapedImage = SizeOfImage();}
+    Location location = Location();
     std::map<std::string,int> sidesCode={{"左边",0},{"上边",0},{"右边",0},{"下边",0}};
-    SizeOfImage size;
-    std::string type;
-    cv::Mat image;
-    int r;
+    SizeOfImage sizeOfSmallImage;
+    SizeOfImage sizeOfShapedImage;
+    std::string type="左上角";
+    cv::Mat smallImage;
+    int r=0;
     cv::Mat shapedImage;
     KeyPoints getKeyPoints();
-    void setKeyPoints();
+    void setKeyPoints(KeyPoints keyPoints);
 private:
     KeyPoints keyPoints;
 };
 
+
+
+
 class ImageToTest{
 public:
     ImageToTest(){};
-    Location location={0,0};
+    Location location=Location();
     std::map<std::string,int> sidesCode={{"左边",0},{"上边",0},{"右边",0},{"下边",0}};
     std::string type;
 };

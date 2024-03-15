@@ -22,3 +22,4 @@ LIBS += E:\openCV\4.9.0\bin\libopencv_imgproc490.dll
 LIBS += E:\openCV\4.9.0\bin\libopencv_features2d490.dll
 LIBS += E:\openCV\4.9.0\bin\libopencv_calib3d490.dll
 
+CONFIG += ddebug
