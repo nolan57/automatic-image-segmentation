@@ -4,12 +4,20 @@
 
 class SizeOfPartition{
 public:
-    SizeOfPartition();
+    SizeOfPartition(){
+        col = 0;
+        row = 0;
+        width = 0;
+        height = 0;
+        lta = 0;
+        keyPoints = KeyPoints();
+    };
     int col;
     int row;
     int width;
     int height;
     int lta;
+    KeyPoints keyPoints;
 };
 
 class Tools
@@ -19,8 +27,9 @@ public:
     int randCode();
     std::vector<PieceOfImage> toSideCode(std::vector<PieceOfImage> images,const int cols);
     void toTestSideCode(const int rows,const int cols);
-    std::vector<PieceOfImage> toPartition(const cv::Mat &image,int rows,int cols);
+    std::vector<PieceOfImage> toPartition(const cv::Mat image,int rows,int cols);
     std::string setType(Location loc,int rows,int cols);
+    KeyPoints setCircleScopes(KeyPoints keyPoints,int lta,std::map<std::string,int> sidesCode);
     SizeOfPartition setSizeOfPartition(const std::string type,
                                        const std::map<std::string,int> sidesCode,
                                        const int col,const int row,
@@ -30,7 +39,7 @@ public:
     bool inScope(cv::Point point,CircleScope scope);
     int inScopes(cv::Point point,std::vector<CircleScope> circleScopes);
     void toShapeImage(PieceOfImage &image);
-    cv::Mat toAlphaImage(const cv::Mat &inputImage);
+    cv::Mat toAlphaImage(const cv::Mat inputImage);
 };
 
 #endif // TOOLS_H
